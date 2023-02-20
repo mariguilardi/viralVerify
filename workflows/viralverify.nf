@@ -11,7 +11,7 @@ WorkflowViralverify.initialise(params, log)
 
 // TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
+def checkPathParamList = [ params.input, params.multiqc_config, params.hmm ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
@@ -51,7 +51,8 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-
+include { HMMER_HMMSEARCH             } from '../modules/nf-core/hmmer/hmmsearch/main'
+include { PRODIGAL                    } from '../modules/nf-core/prodigal/main'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -81,6 +82,17 @@ workflow VIRALVERIFY {
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
+    ///ch_hmm_db = Channel.empty()
+    ch_hmm_db = Channel.fromPath(params.hmm)
+
+    INPUT_CHECK.out.reads
+        .join(ch_hmm_db)
+        .set { ch_hmm_in }
+
+    HMMER_HMMSEARCH (
+        ch_hmm_in
+    )
+    
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
