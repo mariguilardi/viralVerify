@@ -53,6 +53,7 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { HMMER_HMMSEARCH             } from '../modules/nf-core/hmmer/hmmsearch/main'
 include { PRODIGAL                    } from '../modules/nf-core/prodigal/main'
+include { SEQTK_SEQ                   } from '../modules/nf-core/seqtk/seq'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -82,12 +83,20 @@ workflow VIRALVERIFY {
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
-    ///ch_hmm_db = Channel.empty()
     ch_hmm_db = Channel.fromPath(params.hmm)
 
-    INPUT_CHECK.out.reads
-        .join(ch_hmm_db)
-        .set { ch_hmm_in }
+    SEQTK_SEQ(
+        INPUT_CHECK.out.reads
+    )
+
+    PRODIGAL(
+        SEQTK_SEQ.out.fasta,
+        'gff'
+    )
+
+    PRODIGAL.out.nucleotide_fasta
+         .join(ch_hmm_db)
+         .set { ch_hmm_in }
 
     HMMER_HMMSEARCH (
         ch_hmm_in
