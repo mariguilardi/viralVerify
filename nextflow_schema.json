@@ -22,6 +22,15 @@
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/viralverify/usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
+                "hmm": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.hmm(\\.gz)?$",
+                    "default": "https://github.com/nf-core/test-datasets/blob/modules/data/delete_me/hmmer/bac.16S_rRNA.hmm.gz",
+                    "description": "Path to HMM database",
+                    "fa_icon": "fas fa-hmm"
+                },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
